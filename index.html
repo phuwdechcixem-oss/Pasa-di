@@ -255,7 +255,8 @@ const X={
   adjnoun:["ไม่ดี","ไม่ดี","ไม่เหมาะสม"]
 };
 const OP="(?:ไอ้|อี)";
-const PRED="(?:(?:มึง|แก|เธอ|คุณ|ท่าน)\\s*)?มัน(?:เป็น)?\\s*(?:ไอ้|อี)?";
+const PRON2="(?:มึง|แก|เธอ|คุณ|ท่าน|เอ็ง)";
+const PRED=PRON2+"\\s*มัน(?:เป็น)?\\s*(?:ไอ้|อี)?";
 const GR=[
   ["evil","เหี้ย|เชี่ย|เชี้ย|สัส|สัด|เเม่ง|แม่ง"],
   ["vile","สัตว์นรก|สัตว์|เปรต|ระยำ|เลวทราม|เลว|ชาติชั่ว|ชั่ว|หมา|สุนัข|อัปรีย์|ถ่อย|เดรัจฉาน"],
@@ -264,16 +265,21 @@ const GR=[
   ["dumb","ควาย|โง่เง่า|โง่เขลา|โง่|งั่ง|เง่า|ปัญญาอ่อน|ปัญญานิ่ม|บื้อ|บ้า|งี่เง่า|ทึ่ม|เซ่อ"],
   ["shame","ดอกทอง|แรด|ร่าน|ตอแหล|หน้าด้าน|หน้าหนา|เสร่อ|หน้าไหว้หลังหลอก|ดอก"+NB]
 ];
+const PW={evil:"เหี้ย|เชี่ย|เชี้ย|สัส|สัด",vile:"เลวทราม|เลว|ระยำ|ชั่ว(?!โมง|คราว|ขณะ)",wretch:"เวร|จัญไร|บัดซบ",dumb:"ควาย|โง่เง่า|โง่|ปัญญาอ่อน|งี่เง่า"};
+const INS=["evil","vile","wretch","jerk","dumb"];
+const R={voc:"คำเรียกคน",int:"คำเน้น",exc:"คำอุทาน",dir:"คำด่าตรงๆ",norm:"ความหมายปกติ",t3:"อ้างถึงคนที่สาม",adj:"คำคุณศัพท์ความหมายแย่",word:"คำที่มีคำแทนตรงตัว",cut:"ตัดเพราะตัดสินหน้าที่ไม่ได้"};
+const AFT="(?:มาก|จริงๆ|จริง)?";
 const SEM=[];
-GR.forEach(([c,w])=>SEM.push([PRED+"(?:"+w+")",c,1]));
-SEM.push(["(?:เย็ดแม่|เย็ดเข้|เย็ดเถอะ)(?:มึง|เธอ|แก)?","evil",1]);
-SEM.push([OP+"?(?:ลูกอีกะหรี่|ลูกอีกะหี่|ลูกอีดอก|ลูกอีสัส|ลูกอีเหี้ย|ลูกกะหรี่|ลูกกระหรี่|ลูกกะหี่|ลูกกระหี่|ลูกหมา|ลูกแม่ง|ลูกชาติชั่ว|กะหรี่|กระหรี่|กะหี่|กระหี่)","evil",1]);
-GR.forEach(([c,w])=>SEM.push([OP+"(?:"+w+")(?:เอ๊ย|เอ้ย)?",c,1,["evil","vile","wretch","jerk","dumb"].includes(c)]));
+GR.forEach(([c,w])=>SEM.push({src:PRED+"(?:"+w+")"+AFT,c,s:1,v:0,role:R.dir,why:"รูป “มึงมัน+คำด่า” ด่าผู้ฟังตรงๆ"}));
+Object.keys(PW).forEach(c=>SEM.push({src:PRON2+"\\s*(?:"+PW[c]+")"+AFT,c,s:1,v:0,role:R.dir,why:"สรรพนามผู้ฟังตามด้วยคำด่า ด่าผู้ฟังตรงๆ"}));
+SEM.push({src:"(?:เย็ดแม่|เย็ดเข้|เย็ดเถอะ)(?:มึง|เธอ|แก)?",c:"evil",s:1,v:0,role:R.dir,why:"สำนวนด่ารุนแรง"});
+SEM.push({src:OP+"?(?:ลูกอีกะหรี่|ลูกอีกะหี่|ลูกอีดอก|ลูกอีสัส|ลูกอีเหี้ย|ลูกกะหรี่|ลูกกระหรี่|ลูกกะหี่|ลูกกระหี่|ลูกหมา|ลูกแม่ง|ลูกชาติชั่ว|กะหรี่|กระหรี่|กะหี่|กระหี่)",c:"evil",s:1,v:0,role:R.dir,why:"ด่าถึงพ่อแม่หรือชาติกำเนิด ถือเป็นการด่ารุนแรง"});
+GR.forEach(([c,w])=>SEM.push({src:OP+"(?:"+w+")(?:เอ๊ย|เอ้ย)?",c,s:1,v:INS.includes(c),role:INS.includes(c)?R.voc:R.dir,why:"มี ไอ้/อี นำหน้าคำด่า"}));
 [
-  ["(?:ตีนแดก|ส้นตีน|หน้าส้นตีน|หน้าตีน|หน้าหี|หน้าควย)","jerk",1],
-  ["(?:ไปตาย|ตายห่า|ตายโหง|ไปลงนรก|ลงนรก)(?:ไปเลย|ไป|ซะ|เถอะ|เลย)?","curse",1],
-  ["(?:ไสหัว|ไปให้พ้น(?:หน้า)?|ไปไกลๆ)(?:ไปเลย|ไป|ซะ|เถอะ|เลย)?","away",1],
-  ["(?:หุบปาก|ปิดปาก|เงียบไปเลย)(?:ไปเลย|ไป|ซะ|เถอะ|เลย)?","shut",1],
+  ["(?:ตีนแดก|ส้นตีน|หน้าส้นตีน|หน้าตีน|หน้าหี|หน้าควย)","jerk",1,"คำด่าที่ใช้เรียกคนโดยตรง"],
+  ["(?:ไปตาย|ตายห่า|ตายโหง|ไปลงนรก|ลงนรก)(?:ไปเลย|ไป|ซะ|เถอะ|เลย)?","curse",1,"คำแช่งหรือสั่งให้ไปให้พ้น"],
+  ["(?:ไสหัว|ไปให้พ้น(?:หน้า)?|ไปไกลๆ)(?:ไปเลย|ไป|ซะ|เถอะ|เลย)?","away",1,"คำไล่ผู้ฟัง"],
+  ["(?:หุบปาก|ปิดปาก|เงียบไปเลย)(?:ไปเลย|ไป|ซะ|เถอะ|เลย)?","shut",1,"คำสั่งให้เงียบ"],
   ["เย็ด|ปี้"+NB+"|ซั่ม","sex",0],
   ["เสือก"+NB,"nosy",0],["ตอแหล","lie",0],["ปากหมา|ปากเสีย","rude",0],["สันดานหมา|สันดานเลว|สันดาน"+NB,"trait",0],
   ["(?:เฮงซวย|ระยำ|บัดซบ|จัญไร|ห่วย|เห่ย|กาก)(?=มาก|จริง|ๆ)","adjbad",0],
@@ -281,8 +287,8 @@ GR.forEach(([c,w])=>SEM.push([OP+"(?:"+w+")(?:เอ๊ย|เอ้ย)?",c,1,[
   ["ซวย","luck",0],
   ["โง่เง่า|งี่เง่า|ปัญญาอ่อน|สมองหมา|ไร้สมอง|สมองกลวง|โง่|งั่ง|เง่า|บื้อ|ทึ่ม","dumbadj",0],
   ["หมั่นไส้|เหม็นหน้า","dislike",0],["ทุเรศ|น่าสมเพช","pity",0]
-].forEach(r=>SEM.push(r));
-SEM.forEach((r,i)=>{SEM[i]={re:new RegExp(r[0],"g"),c:r[1],s:r[2],v:!!r[3]}});
+].forEach(r=>SEM.push({src:r[0],c:r[1],s:r[2],v:0,role:R.word,why:r[3]||"มีคำสุภาพที่ความหมายตรงกัน"}));
+SEM.forEach(p=>{p.re=new RegExp(p.src,"g")});
 const VOCRE=new RegExp(OP+"(?:"+["evil","vile","wretch","jerk","dumb"].map(c=>GR.find(g=>g[0]===c)[1]).join("|")+")","g");
 const PREDRE=new RegExp(PRED+"(?:"+GR.map(g=>g[1]).join("|")+")");
 const BW="เหี้ย|เชี่ย|เชี้ย|สัส|สัด"+NBE+"|แม่ง|เเม่ง|แม่ม|ฉิบหาย|ชิบหาย|ชิบ"+NBE+"|ห่า"+NBE+"|เวร"+NBE+"|ควย|หี"+NB+"|แตด|จู๋"+NB;
@@ -354,6 +360,12 @@ const YOU=["แก","คุณ","ท่าน"];
 const SKIP=new Set(["หมา","เค้า","น่ารัก","งาน","ช่วย","ให้","รีบ","จริง","อะไร","เพื่อน","ไม่ได้","ไม่สบาย","เดี๋ยว"]);
 const PROT=/https?:\/\/\S+|www\.\S+|[\w.+-]+@[\w-]+(?:\.[\w-]+)+|@[\w.]+|#[\w\u0E00-\u0E7F]+|\d[\d,.:\/-]*|[A-Za-z][A-Za-z0-9'’-]*|“[^”]*”|"[^"]*"|‘[^’]*’/g;
 const CALL=/^(?:เห้ย|เฮ้ย|เฮ้|เห๊ย)\s*/;
+const ADJV=("ดี เก่ง สวย หล่อ น่ารัก ยาก ง่าย เหนื่อย ร้อน หนาว แพง ถูก ขี้เกียจ กลัว ตลก สนุก เศร้า หิว ง่วง แย่ เร็ว ช้า อร่อย เจ๋ง เท่ ใหญ่ เล็ก หนัก เบา ไกล ใกล้ เย็น สะอาด เจ็บ ปวด เมา แรง เบื่อ เหงา เครียด ตื่นเต้น ดีใจ เสียใจ โกรธ งง หวาน เผ็ด เค็ม เปรี้ยว เหม็น หอม เงียบ ดัง เก๋ ขำ กวน ขยัน อ้วน ผอม สูง เตี้ย รวย จน เก่า ใหม่ ว่าง ยุ่ง ปัง "+
+  "กิน ดื่ม ไป มา ทำ เล่น ดู ฟัง พูด คุย เรียน นอน ตื่น วิ่ง เดิน นั่ง ยืน ซื้อ ขาย ให้ เอา ได้ เป็น มี อยู่ รู้ เห็น คิด ลืม จำ ถาม ตอบ ขับ ร้อง เต้น หัวเราะ ร้องไห้ รัก ชอบ เกลียด อยาก ไหว ทน หนี รอ ส่ง รับ โทร เล่า อ่าน เขียน เก็บ ทิ้ง วาง จับ ตี ว่า").split(" ").filter(Boolean).sort((a,b)=>b.length-a.length);
+const NOUNS="คน นิสัย งาน เรื่อง ของ หนัง เพลง ร้าน อาหาร รถ ทีม พวก ครู เพื่อน บ้าน เกม ข่าว อากาศ เวลา วัน ชีวิต เมือง ระบบ เว็บ แอป มัน เขา เค้า ผู้ชาย ผู้หญิง".split(" ").sort((a,b)=>b.length-a.length);
+const endsAdjv=b=>ADJV.find(w=>b.endsWith(w))||null;
+const startsAdjv=a=>ADJV.find(w=>a.startsWith(w))||null;
+const endsNoun=b=>NOUNS.find(w=>b.endsWith(w))||null;
 function conv1(line,lvl,end,fr,soft,sure){
   const li=LI[lvl],ch=[],st={},warn=[];
   let s=line,hasVoc=false;
@@ -362,42 +374,64 @@ function conv1(line,lvl,end,fr,soft,sure){
   s=s.replace(/([ก-๙])\1{2,}/g,(m,c)=>{if(!ch.some(x=>x[0]==="ตัวอักษรซ้ำ"))ch.push(["ตัวอักษรซ้ำ","ตัดให้เหลือตัวเดียว"]);return c});
   const expOf=c=>c.startsWith("np_")?ADJN[c.slice(3)][li]:ADJ[c]?frame([c],li,false):X[c][li];
   const put=(m,c,sp)=>{ch.push([m.trim(),expOf(c)||"ตัดออก"]);st.rude=(st.rude||0)+1;return sp?" \uE000"+c+"\uE001 ":"\uE000"+c+"\uE001"};
+  const clause=(str,off,len)=>{
+    let a=off;while(a>0&&!/[\s!?]/.test(str[a-1]))a--;
+    let b=off+len;while(b<str.length&&!/[\s!?]/.test(str[b]))b++;
+    return {before:str.slice(a,off).replace(/^(?:เห้ย|เฮ้ย|เฮ้|เห๊ย)/,""),after:str.slice(off+len,b)};
+  };
   const third=(off,str,m)=>{
     const after=str.slice(off+m.length),before=str.slice(0,off);
     if(/^(?:นี่|นั่น|นั้น|ตัวนั้น|คนนั้น|พวกนั้น|พวกนี้|ตัวนี้|คนนี้)/.test(after))return true;
     if(/(?:พวก|คน|ตัว|ที่|กับ|เจอ|เห็น|ถาม|บอก|เรียก|ด่า)\s*$/.test(before))return true;
     return /(?:เขา|เค้า|มัน)/.test(str)&&!/(?:มึง|แก|เธอ|คุณ|ท่าน)/.test(str);
   };
+  const putR=(m,c,sp,role,why)=>{ch.push([m.trim(),expOf(c),role,why]);st.rude=(st.rude||0)+1;return sp?" \uE000"+c+"\uE001 ":"\uE000"+c+"\uE001"};
+  const cutR=(m,why)=>{ch.push([m.trim(),"ตัดออก",R.cut,why]);st.rude=(st.rude||0)+1;return " "};
+  // เตรียม: ไอ/ไอ่ -> ไอ้ เมื่อตามด้วยคำหยาบ
+  s=s.replace(/ไอ[่]?(?=เหี้ย|เชี่ย|เชี้ย|สัส|สัด|ห่า|ควาย|ควย|หมา|เวร|โง่|บ้า|งั่ง|เปรต|ระยำ|สัตว์|ตอแหล|แรด|เลว)/g,"ไอ้");
   for(const P of SEM)s=s.replace(P.re,(...a)=>{
-    const m=a[0];
-    if(P.v){
-      hasVoc=true;
-      const t3=third(a[a.length-2],a[a.length-1],m);
-      if(fr&&(!t3||sure)){ch.push([m.trim(),t3?"เพื่อน":"ตัดออก"]);st.rude=(st.rude||0)+1;return t3?"\uE000fr3\uE001":" \uE000friend\uE001 "}
-      if(t3)return put(m,"np_"+P.c,0);
+    const m=a[0],off=a[a.length-2],str=a[a.length-1];
+    if(!P.v)return putR(m,P.c,P.s,P.role,P.why);
+    hasVoc=true;
+    const t3=third(off,str,m),k=clause(str,off,m.length);
+    const edge=k.before===""||/^(?:เอ๊ย|เอ้ย|ๆ)*(?:วะ|ว่ะ|เว้ย|โว้ย|นะ|เลย)*$/.test(k.after);
+    if(t3){
+      if(fr&&sure){ch.push([m.trim(),"เพื่อน",R.t3,"พูดถึงเพื่อนคนที่สามในน้ำเสียงหยอก"]);st.rude=(st.rude||0)+1;return "\uE000fr3\uE001"}
+      return putR(m,"np_"+P.c,0,R.t3,"ตามด้วยคำชี้เฉพาะ หรืออยู่หลังคำนาม/กริยา หมายถึงคนที่สามไม่ใช่ผู้ฟัง");
     }
-    return put(m,P.c,P.s);
+    if(edge){
+      if(fr){ch.push([m.trim(),"ตัดออก",R.voc,"ไอ้/อีนำหน้า อยู่ต้นหรือท้ายอนุประโยค น้ำเสียงหยอก"]);st.rude=(st.rude||0)+1;return " \uE000friend\uE001 "}
+      return putR(m,P.c,1,R.voc,"ไอ้/อีนำหน้า อยู่ต้นหรือท้ายอนุประโยค น้ำเสียงด่าจริง");
+    }
+    return cutR(m,"ไอ้/อีอยู่กลางอนุประโยค แยกไม่ออกว่าเรียกผู้ฟังหรือพูดถึงคนอื่น");
   });
-  s=s.replace(/(?<![ก-๙\uE001])(?:ฉิบหาย|ชิบหาย)แล้ว/g,m=>{ch.push([m,X.doom[li]]);st.rude=(st.rude||0)+1;return " \uE000doom\uE001 "});
-  s=s.replace(QB,(m,q)=>{ch.push([m,q+X.qint[li]]);st.rude=(st.rude||0)+1;return q+"\uE000qint\uE001"});
-  s=s.replace(/โคตร(เก่ง|ดี|สวย|หล่อ|น่ารัก|เจ๋ง|ยาก|ง่าย|เหนื่อย|ร้อน|หนาว|แพง|ถูก|ขี้เกียจ|กลัว|ตลก|สนุก|เศร้า|หิว|ง่วง|แย่|เร็ว|ช้า)/g,(m,a)=>{ch.push([m,a+X.int[li]]);st.rude=(st.rude||0)+1;return a+"\uE000int\uE001"});
-  s=s.replace(/โคตร(?=\s|$)/g,()=>{ch.push(["โคตร",X.int[li]]);st.rude=(st.rude||0)+1;return "\uE000int\uE001"});
-  s=s.replace(/โคตร/g,()=>{ch.push(["โคตร","ตัดออก"]);return ""});
+  s=s.replace(/(?<![ก-๙\uE001])(?:ฉิบหาย|ชิบหาย)แล้ว/g,m=>{ch.push([m,X.doom[li],R.exc,"“ชิบหายแล้ว” หมายถึงเกิดเรื่องแย่"]);st.rude=(st.rude||0)+1;return " \uE000doom\uE001 "});
+  s=s.replace(QB,(m,q)=>{ch.push([m,q+X.qint[li],R.int,"คำหยาบเน้นคำถาม ตามด้วย “"+q+"”"]);st.rude=(st.rude||0)+1;return q+"\uE000qint\uE001"});
+  s=s.replace(/โคตร(เก่ง|ดี|สวย|หล่อ|น่ารัก|เจ๋ง|ยาก|ง่าย|เหนื่อย|ร้อน|หนาว|แพง|ถูก|ขี้เกียจ|กลัว|ตลก|สนุก|เศร้า|หิว|ง่วง|แย่|เร็ว|ช้า)/g,(m,a)=>{ch.push([m,a+X.int[li],R.int,"โคตรนำหน้าคำคุณศัพท์ “"+a+"”"]);st.rude=(st.rude||0)+1;return a+"\uE000int\uE001"});
+  s=s.replace(/โคตร/g,(...a)=>{
+    const m=a[0],off=a[a.length-2],str=a[a.length-1],k=clause(str,off,m.length),w=endsAdjv(k.before);
+    if(w&&k.after===""){ch.push([m,X.int[li],R.int,"อยู่หลังคำคุณศัพท์/กริยา “"+w+"”"]);st.rude=(st.rude||0)+1;return "\uE000int\uE001"}
+    return cutR(m,"โคตรไม่ได้อยู่หน้าหรือหลังคำคุณศัพท์ที่รู้จัก");
+  });
   s=s.replace(BARE,(...a)=>{
-    const m=a[0],off=a[a.length-2],str=a[a.length-1],rest=str.slice(off+m.length);
-    st.rude=(st.rude||0)+1;
-    const lit=/^(ควย|จู๋)/.test(m)?"anm":/^(หี|แตด)/.test(m)?"anf":null;
-    const prevTh=off>0&&/[ก-๙\uE001]/.test(str[off-1]),nextTh=/^[ก-๙]/.test(rest);
-    let c;
-    if(lit&&(prevTh||nextTh))c=lit;
-    else if(/(?:คน|นิสัย|งาน|เรื่อง|ของ|หนัง|เพลง|ร้าน|อาหาร|รถ|ทีม|พวก|ครู|เพื่อน)$/.test(str.slice(Math.max(0,off-6),off)))c="adjnoun";
-    else if(/^(ฉิบหาย|ชิบหาย)/.test(m)&&!prevTh)c="doom";
-    else if(prevTh)c="int";
-    else if(/^(มาก|จริง)/.test(rest))c="adjbad";
-    else if(nextTh)c="pre";
-    else c="excl";
-    ch.push([m,X[c][li]]);
-    return (c==="excl"||c==="doom")?" \uE000"+c+"\uE001 ":"\uE000"+c+"\uE001";
+    const m=a[0],off=a[a.length-2],str=a[a.length-1];
+    const w=m.replace(/(?:เอ๊ย|เอ้ย|ๆ)+$/,"");
+    const k=clause(str,off,m.length),bef=k.before,aft=k.after;
+    const doomW=/^(ฉิบหาย|ชิบหาย)/.test(w);
+    const lit=/^(ควย|จู๋)/.test(w)?"anm":/^(หี|แตด)/.test(w)?"anf":null;
+    if(w==="เหี้ย"&&(/ตัว$/.test(bef)||/^(?:ตัว(?:นี้|นั้น|ใหญ่|เล็ก|หนึ่ง)|ในสวน|ในน้ำ|เลื้อย)/.test(aft)))return m;
+    const mk=(c,role,why)=>{ch.push([m,X[c][li],role,why]);st.rude=(st.rude||0)+1;return (c==="excl"||c==="doom")?" \uE000"+c+"\uE001 ":"\uE000"+c+"\uE001"};
+    if(bef===""&&aft==="")return mk(doomW?"doom":"excl",R.exc,"อยู่โดดๆ ทั้งอนุประโยค");
+    const av=endsAdjv(bef);
+    if(av)return mk("int",R.int,"อยู่หลังคำคุณศัพท์/กริยา “"+av+"”");
+    if(/\uE001$/.test(bef))return mk("int",R.int,"อยู่หลังคำที่แปลงแล้ว ใช้เน้นความหมาย");
+    if(lit)return mk(lit,R.norm,"ใช้ตรงตัวหมายถึงอวัยวะ เปลี่ยนเป็นคำกลาง");
+    const nv=endsNoun(bef);
+    if(nv)return mk("adjnoun",R.adj,"อยู่หลังคำนาม/สรรพนาม “"+nv+"” ใช้ขยายว่าไม่ดี");
+    if(bef===""&&/^(มาก|จริง)/.test(aft))return mk("adjbad",R.adj,"อยู่ต้นอนุประโยคตามด้วย “มาก/จริง” ใช้เป็นคำคุณศัพท์ว่าแย่");
+    const sa=bef===""?startsAdjv(aft):null;
+    if(sa)return mk("pre",R.int,"นำหน้าคำคุณศัพท์ “"+sa+"”");
+    return cutR(m,"ไม่อยู่หลังคำคุณศัพท์/กริยาที่รู้จัก และไม่ได้อยู่โดดๆ");
   });
   s=s.replace(/\s{2,}/g," ").trim();
   if(lvl==="fam"){
@@ -542,6 +576,50 @@ function runTests(){
   t("20 สัสๆๆ",()=>{const g=cv("สัสๆๆ ทำไมไม่บอก","pol","ค่ะ");return{ok:g.indexOf("สัส")<0&&g.indexOf("ทำไม")>=0,got:g}});
   t("21 ทางการ เนื่องจาก/ดิฉัน",()=>{const g=cv("ฝากบอกครูด้วยนะ กูมาสายเพราะรถเสีย","frm","ค่ะ");return{ok:g.indexOf("เนื่องจาก")>=0&&g.indexOf("ดิฉัน")>=0&&g.indexOf("กู")<0,got:g}});
   t("22 โกรธจริง+ลดความแรง",()=>{const g=convert("ไอ้เหี้ย มึงมันเลว","frm","ครับ","angry",true).text;return{ok:g.indexOf("ไม่พอใจ")>=0,got:g}});
+
+  // ---- ตัวอย่างอ้างอิงตามหน้าที่ (หน้าที่ละ 2)
+  const hasRole=(r,role)=>r.ch.some(c=>c[2]===role);
+  t("บังคับ: กินไรยังไอห่า",()=>{const g=convert("กินไรยังไอห่า","pol","ค่ะ","joke").text;return{ok:g==="ทานอะไรหรือยังคะ",got:g}});
+  t("เรียกคน 1 (ต้น/หยอก)",()=>{const r=convert("ไอ้เหี้ย มึงมาแล้ว","pol","ค่ะ","joke");return{ok:hasRole(r,"คำเรียกคน")&&r.text.indexOf("เหี้ย")<0,got:r.text}});
+  t("เรียกคน 2 (ท้าย/หยอก กันเอง)",()=>{const r=convert("ใครเอาของกูไปวะ ไอ้สัส","fam","","joke");return{ok:hasRole(r,"คำเรียกคน")&&/เพื่อน/.test(r.text),got:r.text}});
+  t("คำเน้น 1",()=>{const g=cv("ดีห่า","pol");return{ok:g==="ดีมาก",got:g}});
+  t("คำเน้น 2",()=>{const g=cv("ง่วงชิบหาย","frm");return{ok:g==="ง่วงอย่างยิ่ง",got:g}});
+  t("อุทาน 1",()=>{const r=convert("ห่า! ลืมกุญแจ","pol","","auto");return{ok:hasRole(r,"คำอุทาน")&&r.text.indexOf("ห่า")<0,got:r.text}});
+  t("อุทาน 2",()=>{const r=convert("เหี้ย ลืมกระเป๋าเงิน","frm","","auto");return{ok:hasRole(r,"คำอุทาน")&&r.text.indexOf("เหี้ย")<0,got:r.text}});
+  t("ด่าตรงๆ 1",()=>{const r=convert("มึงมันเหี้ย","pol","","auto");return{ok:hasRole(r,"คำด่าตรงๆ")&&r.text.indexOf("เหี้ย")<0&&/คุณช่าง/.test(r.text),got:r.text}});
+  t("ด่าตรงๆ 2",()=>{const r=convert("มึงเหี้ยมาก","frm","","auto");return{ok:hasRole(r,"คำด่าตรงๆ")&&/ท่าน/.test(r.text)&&r.text.indexOf("มากมาก")<0,got:r.text}});
+  t("ความหมายปกติ 1",()=>{const g=cv("ตัวเหี้ยอยู่ในสวน","fam");return{ok:g==="ตัวเหี้ยอยู่ในสวน",got:g}});
+  t("ความหมายปกติ 2",()=>{const g=cv("หมาตัวนี้น่ารัก","fam");return{ok:g==="หมาตัวนี้น่ารัก",got:g}});
+  t("คนที่สาม 1",()=>{const r=convert("เจอไอ้เหี้ยนั่นเมื่อวาน","pol","","auto");return{ok:hasRole(r,"อ้างถึงคนที่สาม")&&/นั่น/.test(r.text),got:r.text}});
+  t("คนที่สาม 2",()=>{const r=convert("เขาเป็นไอ้ควายจริงๆ","pol","","auto");return{ok:hasRole(r,"อ้างถึงคนที่สาม")&&r.text.indexOf("ควาย")<0,got:r.text}});
+  t("คำคุณศัพท์แย่ 1",()=>{const r=convert("นิสัยเหี้ย","pol","","auto");return{ok:hasRole(r,"คำคุณศัพท์ความหมายแย่")&&/ไม่ดี/.test(r.text),got:r.text}});
+  t("คำคุณศัพท์แย่ 2",()=>{const r=convert("เหี้ยมาก","pol","","auto");return{ok:hasRole(r,"คำคุณศัพท์ความหมายแย่")&&r.text==="แย่มาก",got:r.text}});
+  t("ตัดเพราะตัดสินไม่ได้",()=>{const r=convert("ขนมเหี้ย","pol","","auto");return{ok:hasRole(r,"ตัดเพราะตัดสินหน้าที่ไม่ได้")&&r.text.indexOf("เหี้ย")<0,got:r.text}});
+  // ---- ชุดที่สร้างจากแม่แบบ [คำ] x [หน้าที่]
+  const VOCW=["เหี้ย","เชี่ย","สัส","สัด","ห่า","เวร","ควาย","โง่","สัตว์","เปรต","ระยำ","ปัญญาอ่อน","บ้า","เลว","หมา"];
+  const BAREW=["เหี้ย","เชี่ย","สัส","ห่า","แม่ง"];
+  const noW=(x,w)=>(w==="เลว"?x.split("เลวทราม").join(""):x).indexOf(w)<0;
+  const gen=[];
+  const g=(n,fn)=>{let r;try{r=fn()}catch(e){r={ok:false,got:"error: "+e.message}}gen.push({n,...r})};
+  for(const w of VOCW)for(const l of ["pol","frm"]){
+    g("เรียกคน-หยอก-ต้น "+w+" "+l,()=>{const r=convert("ไอ้"+w+" มึงมาแล้ว",l,"ครับ","joke");return{ok:noW(r.text,w)&&!/ไอ้/.test(r.text)&&hasRole(r,"คำเรียกคน"),got:r.text}});
+    g("เรียกคน-หยอก-ท้าย "+w+" "+l,()=>{const r=convert("มึงไปไหนมา อี"+w,l,"ค่ะ","joke");return{ok:noW(r.text,w)&&!/อี/.test(r.text)&&hasRole(r,"คำเรียกคน"),got:r.text}});
+    g("เรียกคน-ด่าจริง "+w+" "+l,()=>{const r=convert("ไอ้"+w+" มึงมาแล้ว",l,"ค่ะ","angry");return{ok:noW(r.text,w)&&/(คุณช่าง|ท่าน)/.test(r.text)&&hasRole(r,"คำเรียกคน"),got:r.text}});
+    g("คนที่สาม "+w+" "+l,()=>{const r=convert("เจอไอ้"+w+"นั่นเมื่อวาน",l,"","auto");return{ok:noW(r.text,w)&&/นั่น/.test(r.text)&&hasRole(r,"อ้างถึงคนที่สาม"),got:r.text}});
+  }
+  for(const w of BAREW){
+    g("คำเน้น "+w+" สุภาพ",()=>{const x=cv("ดี"+w,"pol");return{ok:x==="ดีมาก",got:x}});
+    g("คำเน้น "+w+" ทางการ",()=>{const x=cv("ดี"+w,"frm");return{ok:x==="ดีอย่างยิ่ง",got:x}});
+    g("อุทาน "+w,()=>{const r=convert(w+"! ลืมกุญแจ","pol","","auto");return{ok:hasRole(r,"คำอุทาน")&&noW(r.text,w)&&r.text.indexOf("ลืม")>=0,got:r.text}});
+    g("คำคุณศัพท์แย่ "+w,()=>{const r=convert("นิสัย"+w,"pol","","auto");return{ok:hasRole(r,"คำคุณศัพท์ความหมายแย่")&&/(ไม่ดี|ไม่เหมาะสม)/.test(r.text)&&noW(r.text,w),got:r.text}});
+    g("ตัดไม่ได้ "+w,()=>{const r=convert("ขนม"+w,"pol","","auto");return{ok:hasRole(r,"ตัดเพราะตัดสินหน้าที่ไม่ได้")&&noW(r.text,w),got:r.text}});
+  }
+  for(const w of ["เหี้ย","เชี่ย","สัส","ควาย","เลว"])for(const l of ["pol","frm"])
+    g("ด่าตรงๆ "+w+" "+l,()=>{const r=convert("มึงมัน"+w,l,"","angry");return{ok:noW(r.text,w)&&hasRole(r,"คำด่าตรงๆ"),got:r.text}});
+  for(const s of ["หมาตัวนี้น่ารัก","ควายกินหญ้า","ห่าฝนตกหนัก","ตัวเหี้ยอยู่ในสวน","ตีนเขาสวยมาก","สัตว์เลี้ยงของผมชื่อมะลิ"])
+    g("ความหมายปกติ "+s,()=>{const x=cv(s,"fam");return{ok:x===s,got:x}});
+  const fails=gen.filter(x=>!x.ok);
+  T.push({n:"ชุดสร้างอัตโนมัติ "+gen.length+" เคส (ผ่าน "+(gen.length-fails.length)+")",ok:fails.length===0,got:fails.length?fails.slice(0,8).map(x=>x.n+" => "+x.got).join(" | "):"ผ่านทั้งหมด"});
   return T;
 }
 //LOGIC-END
@@ -673,6 +751,12 @@ function render(r){
       u.appendChild(li);
     });
     o.appendChild(u);
+  }
+  const why=r.ch.filter(c=>c[2]);
+  if(why.length){
+    const d=el("details","more");d.appendChild(el("summary",null,"ดูหน้าที่และเหตุผลของคำหยาบที่แปลง ("+why.length+")"));
+    const ul=el("ul");why.forEach(c=>ul.appendChild(el("li",null,c[0]+" → "+c[1]+" · หน้าที่: "+c[2]+" · เหตุผล: "+c[3])));
+    d.appendChild(ul);o.appendChild(d);
   }
   const cp=el("button","btn ghost","คัดลอกข้อความ");cp.type="button";cp.onclick=()=>copyText(r.text,cp);o.appendChild(cp);
   o.appendChild(el("p","where","เว็บนี้เปลี่ยนเฉพาะคำที่อยู่ในรายการและรูปแบบที่ตั้งกฎไว้ อ่านทวนก่อนส่งทุกครั้ง"));
